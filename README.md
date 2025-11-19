@@ -111,11 +111,6 @@ function Root() {
 
 ## Documentation
 
-### Getting Started
-- 📖 [Getting Started Guide](./docs/GETTING_STARTED.md) - Installation and basic usage
-- 🔧 [Provider Configuration](./docs/PROVIDERS.md) - Detailed provider setup
-- 🌐 [Browser Compatibility](./docs/BROWSER_COMPATIBILITY.md) - Browser requirements
-
 ### API & Examples
 - 📚 [API Reference](./docs/API_REFERENCE.md) - Complete API documentation
 - 💻 [Examples](./docs/EXAMPLES.md) - Practical usage examples
@@ -244,8 +239,6 @@ See [API Reference](./docs/API_REFERENCE.md) for complete documentation.
 | Safari | ❌ | ✅ | ✅ |
 | Edge | ❌ | ✅ | ✅ |
 | Mobile | ❌ | ✅ | ✅ |
-
-See [Browser Compatibility](./docs/BROWSER_COMPATIBILITY.md) for details.
 
 ## Contributing
 

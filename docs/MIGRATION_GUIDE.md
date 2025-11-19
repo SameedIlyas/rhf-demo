@@ -1,156 +1,464 @@
-# Documentation Migration Guide
+# Migration Guide
 
-This guide helps you navigate the new documentation structure if you're familiar with the old single-file README.
+## From React Hook Form to React Hook Form AI
 
-## What Changed?
+This guide shows you how to add AI capabilities to your existing React Hook Form with minimal changes.
 
-The documentation has been restructured from a single large README into multiple focused documents for better organization and LLM consumption.
+## Quick Migration (3 Steps)
 
-## Quick Reference
+### Step 1: Install the Package
 
-### Old README Section → New Location
-
-| Old Section | New Location |
-|-------------|--------------|
-| Features | [README.md](../README.md#features) |
-| Install | [Getting Started](./GETTING_STARTED.md#installation) |
-| Quickstart | [Getting Started](./GETTING_STARTED.md#basic-usage) |
-| Provider Configuration | [Providers](./PROVIDERS.md) |
-| Chrome Built-in AI | [Providers - Chrome AI](./PROVIDERS.md#chrome-built-in-ai) |
-| OpenAI Provider | [Providers - OpenAI](./PROVIDERS.md#openai-provider) |
-| Custom Server | [Providers - Custom Server](./PROVIDERS.md#custom-server-provider) |
-| AIFormProvider | [API Reference - AIFormProvider](./API_REFERENCE.md#aiformprovider) |
-| Local Configuration | [Providers - Local Configuration](./PROVIDERS.md#local-configuration-per-form-override) |
-| API Reference | [API Reference](./API_REFERENCE.md) |
-| UseFormAIReturn | [API Reference - UseFormAIReturn](./API_REFERENCE.md#useformaireturnt) |
-| AIFormOptions | [API Reference - AIFormOptions](./API_REFERENCE.md#aiformoptions) |
-| AI Provider Types | [API Reference - Types](./API_REFERENCE.md#types) |
-| Advanced Examples | [Examples](./EXAMPLES.md) |
-| Multi-Provider Setup | [Examples - Multi-Provider](./EXAMPLES.md#multi-provider-setup-with-fallback) |
-| Field Suggestions | [Examples - Field-Level](./EXAMPLES.md#field-level-ai-suggestions) |
-| Chrome AI Download | [Examples - Download Handling](./EXAMPLES.md#chrome-ai-download-handling) |
-| Browser Compatibility | [Browser Compatibility](./BROWSER_COMPATIBILITY.md) |
-| Chrome AI Requirements | [Browser Compatibility - Chrome AI](./BROWSER_COMPATIBILITY.md#chrome-built-in-ai-requirements) |
-| Contributing | [CONTRIBUTING.md](../CONTRIBUTING.md) |
-| Credits | [README.md](../README.md#credits) |
-| License | [README.md](../README.md#license) |
-
-## Finding What You Need
-
-### I want to get started quickly
-→ [Getting Started Guide](./GETTING_STARTED.md)
-
-### I need to configure AI providers
-→ [Provider Configuration](./PROVIDERS.md)
-
-### I'm looking for API details
-→ [API Reference](./API_REFERENCE.md)
-
-### I need code examples
-→ [Examples](./EXAMPLES.md)
-
-### I have browser compatibility questions
-→ [Browser Compatibility](./BROWSER_COMPATIBILITY.md)
-
-## Key Improvements
-
-### 1. Better Organization
-
-**Before:** Everything in one 1300+ line file
-**After:** Focused documents for each topic
-
-### 2. Easier Navigation
-
-**Before:** Scroll through entire README
-**After:** Direct links to specific topics
-
-### 3. LLM-Friendly
-
-**Before:** Hard for AI assistants to parse
-**After:** Structured for AI-assisted coding
-
-### 4. Auto-Generated API Docs
-
-**Before:** Manually maintained
-**After:** Generated from TSDoc comments
-
-### 5. More Examples
-
-**Before:** Limited examples
-**After:** Comprehensive examples document
-
-## Documentation Structure
-
-```
-docs/
-├── README.md                    # Documentation index
-├── GETTING_STARTED.md           # Quick start guide
-├── API_REFERENCE.md             # Complete API docs
-├── PROVIDERS.md                 # Provider configuration
-├── EXAMPLES.md                  # Usage examples
-├── BROWSER_COMPATIBILITY.md     # Browser requirements
-└── MIGRATION_GUIDE.md           # This file
+```bash
+npm install react-hook-form-ai
 ```
 
-## Common Tasks
+### Step 2: Update Import
 
-### Installing the Library
+```diff
+- import { useForm } from 'react-hook-form';
++ import { useForm } from 'react-hook-form-ai';
+```
 
-**Old:** Scroll to "Install" section in README
-**New:** [Getting Started - Installation](./GETTING_STARTED.md#installation)
+### Step 3: Add AI Button
 
-### Basic Usage Example
+```diff
+  <form onSubmit={handleSubmit(onSubmit)}>
+    <input {...register('name')} />
+    <input {...register('email')} />
++   <button type="button" onClick={() => aiAutofill()}>
++     AI Autofill
++   </button>
+    <button type="submit">Submit</button>
+  </form>
+```
 
-**Old:** Find "Quickstart" in README
-**New:** [Getting Started - Basic Usage](./GETTING_STARTED.md#basic-usage)
-
-### Configuring OpenAI
-
-**Old:** Search for "OpenAI Provider" in README
-**New:** [Providers - OpenAI](./PROVIDERS.md#openai-provider)
-
-### Handling Chrome AI Download
-
-**Old:** Find "Chrome AI Download Handling" example
-**New:** [Examples - Chrome AI Download](./EXAMPLES.md#chrome-ai-download-handling)
-
-### API Reference for useForm
-
-**Old:** Search for "UseFormAIReturn Interface"
-**New:** [API Reference - useForm](./API_REFERENCE.md#useform)
-
-### Browser Compatibility
-
-**Old:** Find "Browser Compatibility" section
-**New:** [Browser Compatibility](./BROWSER_COMPATIBILITY.md)
-
-## Benefits of New Structure
-
-### For Developers
-
-- ✅ Faster to find information
-- ✅ Easier to reference specific sections
-- ✅ More comprehensive examples
-- ✅ Better organized by topic
-
-### For AI Assistants
-
-- ✅ Easier to parse and understand
-- ✅ Better context for code generation
-- ✅ More accurate suggestions
-- ✅ Focused information retrieval
-
-### For Contributors
-
-- ✅ Easier to maintain
-- ✅ Auto-generated API docs
-- ✅ Clear structure for additions
-- ✅ TSDoc comments in source code
-
-## Feedback
-
-If you have trouble finding something or have suggestions for improving the documentation structure, please [open an issue](https://github.com/grayhatdevelopers/react-hook-form-ai/issues).
+**That's it!** Your form now has AI capabilities.
 
 ---
 
-**Need Help?** Start with the [Documentation Index](./README.md)
+## Complete Example
+
+### Before (React Hook Form)
+
+```tsx
+import { useForm } from 'react-hook-form';
+
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+}
+
+function MyForm() {
+  const { register, handleSubmit } = useForm<FormData>();
+
+  const onSubmit = (data: FormData) => {
+    console.log(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('name')} />
+      <input {...register('email')} />
+      <input {...register('phone')} />
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+```
+
+### After (React Hook Form AI)
+
+```diff
+- import { useForm } from 'react-hook-form';
++ import { useForm } from 'react-hook-form-ai';
+
+  interface FormData {
+    name: string;
+    email: string;
+    phone: string;
+  }
+
+  function MyForm() {
+-   const { register, handleSubmit } = useForm<FormData>();
++   const { register, handleSubmit, aiAutofill, aiLoading } = useForm<FormData>();
+
+    const onSubmit = (data: FormData) => {
+      console.log(data);
+    };
+
+    return (
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <input {...register('name')} />
+        <input {...register('email')} />
+        <input {...register('phone')} />
++       <button 
++         type="button" 
++         onClick={() => aiAutofill()}
++         disabled={aiLoading}
++       >
++         {aiLoading ? 'Processing...' : 'AI Autofill'}
++       </button>
+        <button type="submit">Submit</button>
+      </form>
+    );
+  }
+```
+
+**Changes:**
+- ✅ Changed import from `react-hook-form` to `react-hook-form-ai`
+- ✅ Added `aiAutofill` and `aiLoading` to destructured values
+- ✅ Added AI Autofill button with loading state
+
+---
+
+## Adding Configuration
+
+### Basic Configuration
+
+```diff
+  const { 
+    register, 
+    handleSubmit, 
+    aiAutofill, 
+    aiLoading 
+- } = useForm<FormData>();
++ } = useForm<FormData>({
++   ai: {
++     enabled: true,
++     providers: [{ type: 'chrome', priority: 10 }]
++   }
++ });
+```
+
+### With Context
+
+```diff
+  const { 
+    register, 
+    handleSubmit, 
+    aiAutofill, 
+    aiLoading 
+  } = useForm<FormData>({
+    ai: {
+      enabled: true,
+      providers: [{ type: 'chrome', priority: 10 }],
++     formContext: 'Senior software engineer with 8+ years experience'
+    }
+  });
+```
+
+### Excluding Sensitive Fields
+
+```diff
+  const { 
+    register, 
+    handleSubmit, 
+    aiAutofill, 
+    aiLoading 
+  } = useForm<FormData>({
+    ai: {
+      enabled: true,
+      providers: [{ type: 'chrome', priority: 10 }],
++     excludeFields: ['password', 'creditCard', 'ssn']
+    }
+  });
+```
+
+---
+
+## Global Configuration with Provider
+
+### Before (Multiple Forms)
+
+```tsx
+function App() {
+  return (
+    <>
+      <ContactForm />
+      <RegistrationForm />
+      <ProfileForm />
+    </>
+  );
+}
+```
+
+### After (With Global Provider)
+
+```diff
++ import { AIFormProvider } from 'react-hook-form-ai';
+
+  function App() {
+    return (
++     <AIFormProvider
++       providers={[{ type: 'chrome', priority: 10 }]}
++       formContext="Enterprise application forms"
++     >
+        <ContactForm />
+        <RegistrationForm />
+        <ProfileForm />
++     </AIFormProvider>
+    );
+  }
+```
+
+**Benefit:** All forms automatically inherit AI configuration.
+
+---
+
+## Migration Patterns
+
+### Pattern 1: Simple Form
+
+**Before:**
+```tsx
+const { register, handleSubmit } = useForm();
+```
+
+**After:**
+```diff
+- const { register, handleSubmit } = useForm();
++ const { register, handleSubmit, aiAutofill } = useForm();
+```
+
+### Pattern 2: Form with Validation
+
+**Before:**
+```tsx
+const { 
+  register, 
+  handleSubmit, 
+  formState: { errors } 
+} = useForm();
+```
+
+**After:**
+```diff
+  const { 
+    register, 
+    handleSubmit, 
+    formState: { errors },
++   aiAutofill,
++   aiLoading
+  } = useForm();
+```
+
+### Pattern 3: Form with Default Values
+
+**Before:**
+```tsx
+const { register, handleSubmit } = useForm({
+  defaultValues: {
+    name: '',
+    email: ''
+  }
+});
+```
+
+**After:**
+```diff
+  const { 
+    register, 
+    handleSubmit,
++   aiAutofill,
++   aiLoading
+  } = useForm({
+    defaultValues: {
+      name: '',
+      email: ''
+    },
++   ai: {
++     enabled: true,
++     providers: [{ type: 'chrome', priority: 10 }]
++   }
+  });
+```
+
+### Pattern 4: Form with Custom Resolver
+
+**Before:**
+```tsx
+const { register, handleSubmit } = useForm({
+  resolver: zodResolver(schema)
+});
+```
+
+**After:**
+```diff
+  const { 
+    register, 
+    handleSubmit,
++   aiAutofill,
++   aiLoading
+  } = useForm({
+    resolver: zodResolver(schema),
++   ai: {
++     enabled: true,
++     providers: [{ type: 'chrome', priority: 10 }]
++   }
+  });
+```
+
+---
+
+## Advanced Migration
+
+### Adding AI Status Indicator
+
+```diff
+  const { 
+    register, 
+    handleSubmit, 
+    aiAutofill, 
+-   aiLoading 
++   aiLoading,
++   aiAvailability
+  } = useForm<FormData>();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
++     {aiAvailability && (
++       <div className={aiAvailability.available ? 'success' : 'warning'}>
++         AI Status: {aiAvailability.status}
++       </div>
++     )}
+      
+      <input {...register('name')} />
+      <input {...register('email')} />
+      
+      <button 
+        type="button" 
+        onClick={() => aiAutofill()}
+        disabled={aiLoading}
+      >
+        {aiLoading ? 'Processing...' : 'AI Autofill'}
+      </button>
+      <button type="submit">Submit</button>
+    </form>
+  );
+```
+
+### Adding Download Progress
+
+```diff
+  const { 
+    register, 
+    handleSubmit, 
+    aiAutofill, 
+    aiLoading,
+-   aiAvailability
++   aiAvailability,
++   aiDownloadProgress
+  } = useForm<FormData>();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {aiAvailability && (
+        <div className={aiAvailability.available ? 'success' : 'warning'}>
+          AI Status: {aiAvailability.status}
+        </div>
+      )}
+      
++     {aiDownloadProgress !== null && (
++       <div className="progress-bar">
++         <div style={{ width: `${aiDownloadProgress}%` }} />
++         <span>Downloading: {aiDownloadProgress.toFixed(0)}%</span>
++       </div>
++     )}
+      
+      <input {...register('name')} />
+      <input {...register('email')} />
+      
+      <button 
+        type="button" 
+        onClick={() => aiAutofill()}
+        disabled={aiLoading}
+      >
+        {aiLoading ? 'Processing...' : 'AI Autofill'}
+      </button>
+      <button type="submit">Submit</button>
+    </form>
+  );
+```
+
+---
+
+## Checklist
+
+Use this checklist when migrating:
+
+- [ ] Install `react-hook-form-ai`
+- [ ] Update imports from `react-hook-form` to `react-hook-form-ai`
+- [ ] Add `aiAutofill` and `aiLoading` to destructured values
+- [ ] Add AI Autofill button to form
+- [ ] Configure AI providers (optional)
+- [ ] Add form context (optional)
+- [ ] Exclude sensitive fields (if needed)
+- [ ] Test AI functionality
+- [ ] Update TypeScript types (if using TypeScript)
+- [ ] Add loading states and error handling
+
+---
+
+## Troubleshooting
+
+### Issue: AI Not Working
+
+**Check:**
+```diff
+  const { register, handleSubmit, aiAutofill } = useForm({
++   ai: {
++     enabled: true,
++     providers: [{ type: 'chrome', priority: 10 }]
++   }
+  });
+```
+
+### Issue: Chrome AI Unavailable
+
+**Add fallback:**
+```diff
+  const { register, handleSubmit, aiAutofill } = useForm({
+    ai: {
+      enabled: true,
+      providers: [
+        { type: 'chrome', priority: 10 },
++       { type: 'custom', apiUrl: 'http://localhost:3001', priority: 5 }
+      ]
+    }
+  });
+```
+
+### Issue: Sensitive Fields Being Filled
+
+**Exclude them:**
+```diff
+  const { register, handleSubmit, aiAutofill } = useForm({
+    ai: {
+      enabled: true,
+      providers: [{ type: 'chrome', priority: 10 }],
++     excludeFields: ['password', 'creditCard', 'ssn']
+    }
+  });
+```
+
+---
+
+## Next Steps
+
+1. ✅ Migrate one form as a test
+2. ✅ Test AI functionality
+3. ✅ Add configuration as needed
+4. ✅ Migrate remaining forms
+5. ✅ Consider using AIFormProvider for global config
+
+## Resources
+
+- [API Reference](./API_REFERENCE.md)
+- [Examples](./EXAMPLES.md)
+- [Context Feature Guide](../CONTEXT_FEATURE.md)
+- [Demo Application](../demo/README.md)
+
+---
+
+**Migration is simple - just change the import and add an AI button! 🚀**
