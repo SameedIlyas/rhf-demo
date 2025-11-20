@@ -11,6 +11,7 @@ Practical examples for common use cases with React Hook Form AI.
 - [Custom Debounce Timing](#custom-debounce-timing)
 - [Partial Form Autofill](#partial-form-autofill)
 - [Context-Aware Suggestions](#context-aware-suggestions)
+- [Custom Prompts for Context-Aware Generation](#custom-prompts-for-context-aware-generation)
 
 ## Multi-Provider Setup with Fallback
 
@@ -697,6 +698,165 @@ function AddressForm() {
     </form>
   );
 }
+```
+
+## Custom Context for AI Generation
+
+Pass custom context to the AI using the `formContext` option to guide data generation.
+
+```tsx
+import { useForm } from 'react-hook-form-ai';
+import { useState } from 'react';
+
+interface ProductReviewForm {
+  productName: string;
+  rating: string;
+  reviewTitle: string;
+  reviewText: string;
+  wouldRecommend: string;
+}
+
+function ProductReviewForm() {
+  const [customContext, setCustomContext] = useState('');
+
+  const {
+    register,
+    handleSubmit,
+    aiAutofill,
+    aiLoading,
+  } = useForm<ProductReviewForm>({
+    ai: {
+      enabled: true,
+      // Pass custom context to the AI
+      formContext: customContext.trim()
+        ? { customContext: customContext }
+        : undefined,
+    },
+  });
+
+  return (
+    <form onSubmit={handleSubmit(data => console.log(data))}>
+      <div>
+        <label>Context</label>
+        <textarea
+          value={customContext}
+          onChange={(e) => setCustomContext(e.target.value)}
+          placeholder="e.g., laptop, smartphone, gaming headphones..."
+          rows={3}
+        />
+        <small>This context will be passed to the AI to guide generation</small>
+      </div>
+
+      <input {...register('productName')} placeholder="Product Name" />
+      <input {...register('rating')} placeholder="Rating (1-5)" />
+      <input {...register('reviewTitle')} placeholder="Review Title" />
+      <textarea {...register('reviewText')} placeholder="Review" rows={5} />
+      <input {...register('wouldRecommend')} placeholder="Yes / No" />
+
+      <button 
+        type="button" 
+        onClick={() => aiAutofill()}
+        disabled={aiLoading}
+      >
+        {aiLoading ? 'Generating...' : 'Generate Review'}
+      </button>
+
+      <button type="submit">Submit Review</button>
+    </form>
+  );
+}
+```
+
+### How It Works
+
+1. The `formContext` option passes additional context data to the AI
+2. The AI receives this context along with the form field names
+3. The context helps guide what kind of data the AI should generate
+4. You can pass any string or object as context - the AI will use it to inform its responses
+
+### Use Cases
+
+- **Product Reviews**: Generate reviews for different product categories with relevant features
+- **Survey Forms**: Adapt questions and responses based on survey type
+- **Event Registration**: Customize fields based on event type (conference, workshop, webinar)
+- **Support Tickets**: Generate appropriate responses based on issue category
+- **Dynamic Forms**: Adapt form content based on user selections or roles
+
+### Advanced Example with Multiple Context Variables
+
+```tsx
+function AdvancedContextForm() {
+  const [companyType, setCompanyType] = useState('startup');
+  const [industry, setIndustry] = useState('tech');
+  
+  const { register, aiAutofill } = useForm({
+    ai: {
+      enabled: true,
+      providers: [
+        {
+          type: 'chrome',
+          priority: 10,
+          systemPrompt: `Generate professional profile data.
+
+Company Type: ${companyType}
+Industry: ${industry}
+
+Form fields: {fields}
+Current values: {formContext}
+
+Tailor the response to fit a ${companyType} company in the ${industry} industry.
+Output JSON only.`,
+        },
+      ],
+    },
+  });
+
+  return (
+    <form>
+      <select value={companyType} onChange={(e) => setCompanyType(e.target.value)}>
+        <option value="startup">Startup</option>
+        <option value="enterprise">Enterprise</option>
+        <option value="agency">Agency</option>
+      </select>
+      <select value={industry} onChange={(e) => setIndustry(e.target.value)}>
+        <option value="tech">Technology</option>
+        <option value="finance">Finance</option>
+        <option value="healthcare">Healthcare</option>
+      </select>
+      {/* Other fields */}
+    </form>
+  );
+}
+```
+
+### Using formContext for Additional Data
+
+You can also use `formContext` to pass structured data that will be available in the `{formContext}` template variable:
+
+```tsx
+const { register, aiAutofill } = useForm({
+  ai: {
+    enabled: true,
+    formContext: {
+      companySize: '50-100 employees',
+      benefits: ['equity', 'flexible hours'],
+      techStack: ['React', 'Node.js', 'PostgreSQL']
+    },
+    providers: [
+      {
+        type: 'chrome',
+        priority: 10,
+        systemPrompt: `Generate job application data.
+
+Fields: {fields}
+Context: {formContext}
+
+Use the context to inform your response.
+Output JSON only.`,
+      },
+    ],
+  },
+});
 ```
 
 ## See Also

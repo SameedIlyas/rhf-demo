@@ -37,13 +37,13 @@ interface AIProviderExecutor {
     currentValue: string,
     formContext: Record<string, any>
   ): Promise<AIResponse | null>;
-  
+
   autofill(
     fields: string[],
     formContext: Record<string, any>,
     onProgress?: (progress: number) => void
   ): Promise<AutofillData | null>;
-  
+
   checkAvailability(): Promise<{
     available: boolean;
     status: string;
@@ -55,7 +55,7 @@ interface AIProviderExecutor {
  * Chrome Built-in AI Provider
  */
 class ChromeAIProvider implements AIProviderExecutor {
-  constructor(private config?: Extract<AIProvider, { type: 'chrome' }>) {}
+  constructor(private config?: Extract<AIProvider, { type: 'chrome' }>) { }
 
   async checkAvailability() {
     if (typeof window === 'undefined' || typeof LanguageModel === 'undefined') {
@@ -80,26 +80,37 @@ class ChromeAIProvider implements AIProviderExecutor {
     formContext: Record<string, any>
   ): Promise<AIResponse | null> {
     try {
+      // Extract user-provided context if available
+      const userContext = formContext._context || '';
+      const otherFields = { ...formContext };
+      delete otherFields._context;
+
+      const contextSection = userContext 
+        ? `User Context: ${userContext}\n\nOther form fields: ${JSON.stringify(otherFields, null, 2)}`
+        : `Form context: ${JSON.stringify(otherFields, null, 2)}`;
+
       const defaultPrompt = `You are assisting with form completion. The user is filling out a field named "${fieldName}".
 
-Current value: "${currentValue}"
-Form context: ${JSON.stringify(formContext, null, 2)}
+${contextSection}
 
-Based on the field name, current value, and form context, suggest an improved, corrected, or realistic completion for this field.
+Current value: "${currentValue}"
+
+Based on the field name, current value, and context provided, suggest an improved, corrected, or realistic completion for this field.
 
 Rules:
 - Respond with ONLY the suggested value
 - No explanations or additional text
 - If the current value is already good, return it as-is
-- Make sure the suggestion is appropriate for the field name
+- Make sure the suggestion is appropriate for the field name and matches the user context
+- Use the user context to guide your suggestion (e.g., if context says "Senior Engineer", suggest senior-level experience)
 
 Suggested value:`;
 
-      const prompt = this.config?.systemPrompt 
+      const prompt = this.config?.systemPrompt
         ? this.config.systemPrompt
-            .replace('{fieldName}', fieldName)
-            .replace('{currentValue}', currentValue)
-            .replace('{formContext}', JSON.stringify(formContext, null, 2))
+          .replace('{fieldName}', fieldName)
+          .replace('{currentValue}', currentValue)
+          .replace('{formContext}', JSON.stringify(formContext, null, 2))
         : defaultPrompt;
 
       const session = await LanguageModel.create();
@@ -120,23 +131,34 @@ Suggested value:`;
     onProgress?: (progress: number) => void
   ): Promise<AutofillData | null> {
     try {
-      const defaultPrompt = `You are an intelligent form assistant. Generate realistic example values for a form.
+      // Extract user-provided context if available
+      const userContext = formContext._context || '';
+      const otherFields = { ...formContext };
+      delete otherFields._context;
 
-Form fields: ${fields.join(', ')}
-Context: ${JSON.stringify(formContext, null, 2)}
+      const contextSection = userContext 
+        ? `User Context: ${userContext}\n\nCurrent form values: ${JSON.stringify(otherFields, null, 2)}`
+        : `Current form values: ${JSON.stringify(otherFields, null, 2)}`;
 
-Generate realistic, appropriate values for each field based on the field names and context.
+      const defaultPrompt = `You are an intelligent form assistant. Generate realistic example values for a form based on the provided context.
+
+${contextSection}
+
+Form fields to fill: ${fields.join(', ')}
+
+Generate realistic, appropriate values for each field based on the field names and the user context provided.
+${userContext ? 'IMPORTANT: Your values must match and be consistent with the user context description.' : ''}
 Output ONLY a valid JSON object with these exact field names as keys.
 
 Example format:
-{"name": "Alice Johnson", "email": "alice@example.com", "age": "29"}
+{"firstName": "Alice", "lastName": "Johnson", "email": "alice.johnson@example.com"}
 
 JSON object:`;
 
-      const prompt = this.config?.systemPrompt 
+      const prompt = this.config?.systemPrompt
         ? this.config.systemPrompt
-            .replace('{fields}', fields.join(', '))
-            .replace('{formContext}', JSON.stringify(formContext, null, 2))
+          .replace('{fields}', fields.join(', '))
+          .replace('{formContext}', JSON.stringify(formContext, null, 2))
         : defaultPrompt;
 
       const session = await LanguageModel.create({
@@ -166,7 +188,7 @@ JSON object:`;
  * OpenAI Provider
  */
 class OpenAIProvider implements AIProviderExecutor {
-  constructor(private config: Extract<AIProvider, { type: 'openai' }>) {}
+  constructor(private config: Extract<AIProvider, { type: 'openai' }>) { }
 
   async checkAvailability() {
     return {
@@ -185,6 +207,15 @@ class OpenAIProvider implements AIProviderExecutor {
       const apiUrl = this.config.apiUrl || 'https://api.openai.com/v1/chat/completions';
       const model = this.config.model || 'gpt-3.5-turbo';
 
+      // Extract user-provided context if available
+      const userContext = formContext._context || '';
+      const otherFields = { ...formContext };
+      delete otherFields._context;
+
+      const contextInfo = userContext 
+        ? `User Context: ${userContext}\nOther form fields: ${JSON.stringify(otherFields)}`
+        : `Form context: ${JSON.stringify(otherFields)}`;
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -197,11 +228,11 @@ class OpenAIProvider implements AIProviderExecutor {
           messages: [
             {
               role: 'system',
-              content: 'You are a form completion assistant. Provide only the suggested value, no explanations.',
+              content: 'You are a form completion assistant. Provide only the suggested value that matches the user context, no explanations.',
             },
             {
               role: 'user',
-              content: `Field: ${fieldName}\nCurrent value: ${currentValue}\nContext: ${JSON.stringify(formContext)}\n\nSuggest an improved value:`,
+              content: `Field: ${fieldName}\nCurrent value: ${currentValue}\n${contextInfo}\n\nSuggest an improved value that matches the user context:`,
             },
           ],
           temperature: 0.7,
@@ -231,6 +262,15 @@ class OpenAIProvider implements AIProviderExecutor {
       const apiUrl = this.config.apiUrl || 'https://api.openai.com/v1/chat/completions';
       const model = this.config.model || 'gpt-3.5-turbo';
 
+      // Extract user-provided context if available
+      const userContext = formContext._context || '';
+      const otherFields = { ...formContext };
+      delete otherFields._context;
+
+      const contextInfo = userContext 
+        ? `User Context: ${userContext}\nCurrent form values: ${JSON.stringify(otherFields)}`
+        : `Form context: ${JSON.stringify(otherFields)}`;
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -243,11 +283,11 @@ class OpenAIProvider implements AIProviderExecutor {
           messages: [
             {
               role: 'system',
-              content: 'You are a form autofill assistant. Return only valid JSON with field values.',
+              content: 'You are a form autofill assistant. Return only valid JSON with field values that match the user context.',
             },
             {
               role: 'user',
-              content: `Generate realistic values for these form fields: ${fields.join(', ')}\nContext: ${JSON.stringify(formContext)}\n\nReturn JSON only:`,
+              content: `Generate realistic values for these form fields: ${fields.join(', ')}\n${contextInfo}\n\n${userContext ? 'IMPORTANT: Generate values that match and are consistent with the user context description.' : ''}\n\nReturn JSON only:`,
             },
           ],
           temperature: 0.7,
@@ -260,7 +300,7 @@ class OpenAIProvider implements AIProviderExecutor {
 
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content?.trim();
-      
+
       if (content) {
         const jsonMatch = content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
@@ -279,7 +319,7 @@ class OpenAIProvider implements AIProviderExecutor {
  * Custom Server Provider
  */
 class CustomServerProvider implements AIProviderExecutor {
-  constructor(private config: Extract<AIProvider, { type: 'custom' | 'browser' }>) {}
+  constructor(private config: Extract<AIProvider, { type: 'custom' | 'browser' }>) { }
 
   async checkAvailability() {
     try {
@@ -380,11 +420,11 @@ export async function executeAIProviders<T>(
     try {
       const provider = createAIProvider(config);
       const result = await executor(provider);
-      
+
       if (result !== null) {
         return { result, provider: providerType };
       }
-      
+
       if (!fallbackOnError) {
         return { result: null, provider: null };
       }
